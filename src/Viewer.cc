@@ -20,6 +20,7 @@
 
 #include "Viewer.h"
 #include <pangolin/pangolin.h>
+#include <unistd.h>
 
 #include <mutex>
 
@@ -127,6 +128,9 @@ void Viewer::Run()
         d_cam.Activate(s_cam);
         glClearColor(1.0f,1.0f,1.0f,1.0f);
         mpMapDrawer->DrawCurrentCamera(Twc);
+
+        //cout << "OpenGL Camera Matrix: " << Twc << endl;
+
         if(menuShowKeyFrames || menuShowGraph)
             mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph);
         if(menuShowPoints)

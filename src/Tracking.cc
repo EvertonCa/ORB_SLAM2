@@ -20,6 +20,7 @@
 
 
 #include "Tracking.h"
+#include <unistd.h>
 
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
@@ -489,10 +490,24 @@ void Tracking::Track()
     if(!mCurrentFrame.mTcw.empty())
     {
         cv::Mat Tcr = mCurrentFrame.mTcw*mCurrentFrame.mpReferenceKF->GetPoseInverse();
+        //cout << "Tcw: " << mCurrentFrame.mTcw << endl;
+        //cout << "Tcr: " << Tcr << endl;
+        //cout << "Reference Key Frame (Pose invertida): " << mCurrentFrame.mpReferenceKF->GetPoseInverse() << endl;
+        //cout << "TIMESTAMP: " << mCurrentFrame.mTimeStamp << endl; 
         mlRelativeFramePoses.push_back(Tcr);
         mlpReferences.push_back(mpReferenceKF);
         mlFrameTimes.push_back(mCurrentFrame.mTimeStamp);
         mlbLost.push_back(mState==LOST);
+
+        cv::Mat Tcw = mCurrentFrame.mTcw;
+        cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
+        cv::Mat twc = -Rwc*Tcw.rowRange(0,3).col(3);
+
+        vector<float> q = Converter::toQuaternion(Rwc);
+
+        //cout << setprecision(6) << "Timestamp: " << mCurrentFrame.mTimeStamp << ". x = " <<  setprecision(9) << twc.at<float>(0) << ", y = " << twc.at<float>(1) << ", z = " << twc.at<float>(2) << endl << "q_x = " << q[0] << ", q_y =  " << q[1] << ", q_z = " << q[2] << ", q_w = " << q[3] << endl;
+
+        cout << setprecision(6) << mCurrentFrame.mTimeStamp << " " <<  setprecision(9) << twc.at<float>(0) << " " << twc.at<float>(1) << " " << twc.at<float>(2) << endl << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
     else
     {
