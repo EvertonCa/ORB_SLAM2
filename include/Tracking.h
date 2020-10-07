@@ -38,6 +38,13 @@
 #include "MapDrawer.h"
 #include "System.h"
 
+#include <semaphore.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <fcntl.h>
+
 #include <mutex>
 
 namespace ORB_SLAM2
@@ -61,6 +68,7 @@ public:
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
     cv::Mat GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp);
     cv::Mat GrabImageMonocular(const cv::Mat &im, const double &timestamp);
+    cv::Mat GrabImageMonocularTCC(const cv::Mat &im, const double &timestamp, sem_t *sem_cons_message, sem_t *sem_prod_message, char *result_message);
 
     void SetLocalMapper(LocalMapping* pLocalMapper);
     void SetLoopClosing(LoopClosing* pLoopClosing);
@@ -119,6 +127,7 @@ protected:
 
     // Main tracking function. It is independent of the input sensor.
     void Track();
+    void TrackTCC(sem_t *sem_cons_message, sem_t *sem_prod_message, char *result_message);
 
     // Map initialization for stereo and RGB-D
     void StereoInitialization();
