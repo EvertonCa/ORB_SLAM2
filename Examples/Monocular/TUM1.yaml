@@ -5,16 +5,16 @@
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.fx: 517.306408
-Camera.fy: 516.469215
-Camera.cx: 318.643040
-Camera.cy: 255.313989
+Camera.fx: 1088.900881397018
+Camera.fy: 1089.217889519615
+Camera.cx: 647.7107038404988
+Camera.cy: 384.3654546096783
 
-Camera.k1: 0.262383
-Camera.k2: -0.953104
-Camera.p1: -0.005358
-Camera.p2: 0.002628
-Camera.k3: 1.163314
+Camera.k1: -0.009463797609788296
+Camera.k2: 0.2167281752020947
+Camera.p1: 0.001276858602536545
+Camera.p2: -0.0005692221159153587
+Camera.k3: -1.39439861802678
 
 # Camera frames per second 
 Camera.fps: 30.0
@@ -27,7 +27,7 @@ Camera.RGB: 1
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1000
+ORBextractor.nFeatures: 2000
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
