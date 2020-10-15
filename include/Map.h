@@ -48,6 +48,11 @@ public:
     void InformNewBigChange();
     int GetLastBigChangeIdx();
 
+    // Function to manage the current points to color them in green
+    void AddCurrentMapPoint(MapPoint *pMP);        // add
+    void EraseCurrentMapPoint();                   // delete
+    std::vector<MapPoint *> GetCurrentMapPoints(); // get
+
     std::vector<KeyFrame*> GetAllKeyFrames();
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
@@ -60,6 +65,8 @@ public:
     void clear();
 
     vector<KeyFrame*> mvpKeyFrameOrigins;
+
+    std::set<MapPoint *> mspCurrentMapPoints; // Current map points
 
     std::mutex mMutexMapUpdate;
 

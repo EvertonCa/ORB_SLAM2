@@ -41,10 +41,11 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
 
 }
 
-void MapDrawer::DrawMapPoints()
+void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
 {
     const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints();
     const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints();
+    const vector<MapPoint*> &vpCurrentMPs = mpMap->GetCurrentMapPoints();
 
     set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
 
@@ -78,6 +79,26 @@ void MapDrawer::DrawMapPoints()
     }
 
     glEnd();
+
+    if (bDrawCurrentPoints)
+    {
+        // Define points
+        glPointSize(5);
+        glBegin(GL_POINTS);
+        glColor3f(0.0, 1.0, 0.0);
+
+        // All map points
+        for (std::vector<MapPoint *>::const_iterator i = vpCurrentMPs.begin(); i != vpCurrentMPs.end(); i++)
+        {
+            
+            if ((*i)->isBad())
+                continue;
+            cv::Mat pos = (*i)->GetWorldPos();
+            glVertex3f(pos.at<float>(0), pos.at<float>(1), pos.at<float>(2));
+            printf("x = %f, y = %f, z = %f\n", pos.at<float>(0), pos.at<float>(1), pos.at<float>(2));
+        }
+        glEnd();
+    }
 }
 
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)

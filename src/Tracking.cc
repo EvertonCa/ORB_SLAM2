@@ -450,6 +450,18 @@ void Tracking::TrackTCC(sem_t *sem_cons_message, sem_t *sem_prod_message, char *
         // Update drawer
         mpFrameDrawer->Update(this);
 
+        // Empty the current map points vector
+        mpMap->EraseCurrentMapPoint();
+
+        // Add the current map points in the vector
+        for (int i = 0; i < mCurrentFrame.N; i++)
+        {
+            if (mCurrentFrame.mvpMapPoints[i] && !mCurrentFrame.mvbOutlier[i])
+            {
+                mpMap->AddCurrentMapPoint(mCurrentFrame.mvpMapPoints[i]);
+            }
+        }
+
         // If tracking were good, check if we insert a keyframe
         if(bOK)
         {

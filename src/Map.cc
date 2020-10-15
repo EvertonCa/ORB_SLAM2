@@ -125,9 +125,28 @@ void Map::clear()
 
     mspMapPoints.clear();
     mspKeyFrames.clear();
+    mspCurrentMapPoints.clear();
     mnMaxKFid = 0;
     mvpReferenceMapPoints.clear();
     mvpKeyFrameOrigins.clear();
+}
+
+void Map::AddCurrentMapPoint(MapPoint *pMP)
+{
+    unique_lock<mutex> lock(mMutexMap);
+    mspCurrentMapPoints.insert(pMP);
+}
+
+void Map::EraseCurrentMapPoint()
+{
+    unique_lock<mutex> lock(mMutexMap);
+    mspCurrentMapPoints.clear();
+}
+
+vector<MapPoint *> Map::GetCurrentMapPoints()
+{
+    unique_lock<mutex> lock(mMutexMap);
+    return vector<MapPoint *>(mspCurrentMapPoints.begin(), mspCurrentMapPoints.end());
 }
 
 } //namespace ORB_SLAM
