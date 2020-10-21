@@ -815,7 +815,7 @@ void Tracking::Track()
 
         //cout << setprecision(6) << "Timestamp: " << mCurrentFrame.mTimeStamp << ". x = " <<  setprecision(9) << twc.at<float>(0) << ", y = " << twc.at<float>(1) << ", z = " << twc.at<float>(2) << endl << "q_x = " << q[0] << ", q_y =  " << q[1] << ", q_z = " << q[2] << ", q_w = " << q[3] << endl;
 
-        cout << setprecision(6) << mCurrentFrame.mTimeStamp << " " <<  setprecision(9) << twc.at<float>(0) << " " << twc.at<float>(1) << " " << twc.at<float>(2) << endl << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
+        cout << setprecision(6) << mCurrentFrame.mTimeStamp << " " <<  setprecision(9) << twc.at<float>(0) << " " << twc.at<float>(1) << " " << twc.at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
     else
     {
@@ -1018,6 +1018,11 @@ void Tracking::CreateInitialMapMonocular()
         Reset();
         return;
     }
+
+    //float manualScale;
+    //printf("Enter the desired scale\n");
+    //scanf("%f", &manualScale);
+    //invMedianDepth = 1.0f/manualScale;
 
     // Scale initial baseline
     cv::Mat Tc2w = pKFcur->GetPose();

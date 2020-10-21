@@ -110,15 +110,19 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
             std::vector<cv::Mat> temp;
             temp.push_back(posi);
 
+            float coplanarThreshold = 0.02;
+
             for (std::vector<MapPoint *>::const_iterator j = vpCurrentMPs.begin(); j != vpCurrentMPs.end(); j++)
             {
 
                 if ((*j)->isBad())
                     continue;
                 cv::Mat posj = (*j)->GetWorldPos();
-                if (posi.at<float>(2) <= (posj.at<float>(2) + 0.1) && posi.at<float>(2) >= (posj.at<float>(2) - 0.1))
+                if (posi.at<float>(2) <= (posj.at<float>(2) + coplanarThreshold) && posi.at<float>(2) >= (posj.at<float>(2) - coplanarThreshold))
                 {
-                    temp.push_back(posj);
+                    cv::Mat diff = posi != posj;
+                    if (!(cv::countNonZero(diff) == 0))
+                        temp.push_back(posj);
                 }
             }
             coplanarMapPoints.push_back(temp);
@@ -127,17 +131,18 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
         std::sort(coplanarMapPoints.begin(), coplanarMapPoints.end(), [](const std::vector<cv::Mat> &a, const std::vector<cv::Mat> &b){ return a.size() > b.size(); });
 
         glPointSize(8);
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLES);
         glColor3f(0.0, 0.0, 1.0);  
 
         std::vector<cv::Mat> extremes;
 
         if (!coplanarMapPoints.empty())
         {
-            extremes.push_back(coplanarMapPoints.at(0).at(0));
-            extremes.push_back(coplanarMapPoints.at(0).at(0));
-            extremes.push_back(coplanarMapPoints.at(0).at(0));
-            extremes.push_back(coplanarMapPoints.at(0).at(0));
+            cv::Mat t(1, 3, 0.0f);
+            extremes.push_back(t);
+            extremes.push_back(t);
+            extremes.push_back(t);
+            extremes.push_back(t);
         }
 
         if (coplanarMapPoints.size() > 1)
@@ -154,16 +159,25 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
                 if (coplanarMapPoints.at(0).at(col).at<float>(1) < extremes.at(2).at<float>(1))
                     extremes.at(2) = coplanarMapPoints.at(0).at(col);
 
-                if (coplanarMapPoints.at(0).at(col).at<float>(0) > extremes.at(3).at<float>(1))
+                if (coplanarMapPoints.at(0).at(col).at<float>(1) > extremes.at(3).at<float>(1))
                     extremes.at(3) = coplanarMapPoints.at(0).at(col);
                 //printf("x = %f, y = %f, z = %f ", coplanarMapPoints.at(row).at(col).at<float>(0), coplanarMapPoints.at(row).at(col).at<float>(1), coplanarMapPoints.at(row).at(col).at<float>(2));
             } 
 
             glVertex3f(extremes.at(0).at<float>(0), extremes.at(0).at<float>(1), extremes.at(0).at<float>(2));
             glVertex3f(extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
+            glVertex3f(extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
             glVertex3f(extremes.at(1).at<float>(0), extremes.at(1).at<float>(1), extremes.at(1).at<float>(2));
+            glVertex3f(extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
             glVertex3f(extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
 
+            printf("Extremes\n");
+            printf("x = %f, y = %f, z = %f\n", extremes.at(0).at<float>(0), extremes.at(0).at<float>(1), extremes.at(0).at<float>(2));
+            printf("x = %f, y = %f, z = %f\n", extremes.at(1).at<float>(0), extremes.at(1).at<float>(1), extremes.at(1).at<float>(2));
+            printf("x = %f, y = %f, z = %f\n", extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
+            printf("x = %f, y = %f, z = %f\n", extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
+
+            printf("\n");
         }
 
         glEnd();
