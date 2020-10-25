@@ -13,8 +13,8 @@
 #include <sys/shm.h>
 #include <fcntl.h>
 
-#define HEIGHT 720
-#define WIDTH 1280
+#define HEIGHT 1080
+#define WIDTH 1920
 #define CHANNELS 3
 #define CAMERA_BLOCK_SIZE (WIDTH*HEIGHT*CHANNELS)
 #define IPC_RESULT_ERROR (-1)
@@ -29,15 +29,15 @@
 using namespace std;
 int main(int argc, char **argv) 
 {
-   if(argc != 3) 
-   {
-     cerr << endl << "Usage: ./path_to_PF_ORB path_to_vocabulary path_to_settings path_to_dev_video" << endl;
-     return 1;
-   }
-   // Create SLAM system. It initializes all system threads and gets ready to process frames.
-   ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
+    if(argc != 3) 
+    {
+        cerr << endl << "Usage: ./path_to_PF_ORB path_to_vocabulary path_to_settings path_to_dev_video" << endl;
+        return 1;
+    }
+    // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
 
-   sem_t *sem_prod_cam = sem_open(SLAM_SEM_CAM_PRODUCER_FNAME, 0);
+    sem_t *sem_prod_cam = sem_open(SLAM_SEM_CAM_PRODUCER_FNAME, 0);
     if (sem_prod_cam == SEM_FAILED) {
         perror("sem_open/slamcamproducer");
         exit(EXIT_FAILURE);
@@ -81,12 +81,16 @@ int main(int argc, char **argv)
 
     if (shared_cam_block_id == IPC_RESULT_ERROR) {
         result_cam = NULL;
+        printf("shared_cam_block_id failed\n");
+        exit(1);
     }
 
     //map the shared block int this process's memory and give me a pointer to it
     result_cam = (char*) shmat(shared_cam_block_id, NULL, 0);
     if (result_cam == (char *)IPC_RESULT_ERROR) {
         result_cam = NULL;
+        printf("result_cam failed\n");
+        exit(1);
     }
 
     // MESSAGE SHARED MEMORY
@@ -117,12 +121,13 @@ int main(int argc, char **argv)
         result_message = NULL;
     }
 
-   // Main loop
-   int timeStamps=0;
-   for(;;timeStamps++)
-   {
+    // Main loop
+    int timeStamps=0;
+    for(;;timeStamps++)
+    {
 
         sem_wait(sem_prod_cam); // wait for the producer to have an open slot
+        
         cv::Mat temp = cv::Mat(HEIGHT, WIDTH, 16, result_cam, CHANNELS * WIDTH); // creates a frame from memory
         cv::Mat mat;
         cv::cvtColor(temp, mat, cv::COLOR_BGR2RGB);
@@ -131,10 +136,7 @@ int main(int argc, char **argv)
         sem_post(sem_cons_cam); // signal that data was acquired
     }
 
-   // Stop all threads
-   SLAM.Shutdown();
-
-    // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
+    // Stop all threads
+    SLAM.Shutdown();
     return 0;
 }

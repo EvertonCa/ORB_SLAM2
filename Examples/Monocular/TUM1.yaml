@@ -5,16 +5,16 @@
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.fx: 1088.900881397018
-Camera.fy: 1089.217889519615
-Camera.cx: 647.7107038404988
-Camera.cy: 384.3654546096783
+Camera.fx: 1501.039100848936
+Camera.fy: 1500.034235712612
+Camera.cx: 961.1064296848612
+Camera.cy: 513.7850484931346
 
-Camera.k1: -0.009463797609788296
-Camera.k2: 0.2167281752020947
-Camera.p1: 0.001276858602536545
-Camera.p2: -0.0005692221159153587
-Camera.k3: -1.39439861802678
+Camera.k1: 0.2885175518646902
+Camera.k2: -2.229693466453815
+Camera.p1: 0.001165012119671604
+Camera.p2: 0.0007306907090185245
+Camera.k3: 5.721035191428135
 
 # Camera frames per second 
 Camera.fps: 30.0
@@ -27,13 +27,13 @@ Camera.RGB: 1
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 2000
+ORBextractor.nFeatures: 6000
 
 # ORB Extractor: Scale factor between levels in the scale pyramid 	
 ORBextractor.scaleFactor: 1.2
 
 # ORB Extractor: Number of levels in the scale pyramid	
-ORBextractor.nLevels: 8
+ORBextractor.nLevels: 14
 
 # ORB Extractor: Fast threshold
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
