@@ -23,6 +23,9 @@
 #include "KeyFrame.h"
 #include <pangolin/pangolin.h>
 #include <mutex>
+#include <sstream>
+
+#define MESSAGE_BLOCK_SIZE 4096
 
 namespace ORB_SLAM2
 {
@@ -41,7 +44,7 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
 
 }
 
-void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correction, char *result_correction)
+void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correction, char *result_correction, sem_t *sem_slam_plane_prod, sem_t *sem_slam_plane_cons, char *result_plane)
 {
     const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints();
     const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints();
@@ -109,7 +112,6 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correcti
 
             if (strlen(result_correction) > 0) {
                 coplanarThreshold = atof(result_correction);
-                printf("\"%f\"\n", coplanarThreshold);
             } 
 
             sem_post(sem_correction);
@@ -144,7 +146,7 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correcti
 
         glPointSize(8);
         glBegin(GL_TRIANGLES);
-        glColor3f(0.0, 0.0, 1.0);  
+        glColor3f(0.0, 1.0, 1.0);  
 
         std::vector<cv::Mat> extremes;
 
@@ -183,13 +185,26 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correcti
             glVertex3f(extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
             glVertex3f(extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
 
-            printf("Extremes\n");
-            printf("x = %f, y = %f, z = %f\n", extremes.at(0).at<float>(0), extremes.at(0).at<float>(1), extremes.at(0).at<float>(2));
-            printf("x = %f, y = %f, z = %f\n", extremes.at(1).at<float>(0), extremes.at(1).at<float>(1), extremes.at(1).at<float>(2));
-            printf("x = %f, y = %f, z = %f\n", extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
-            printf("x = %f, y = %f, z = %f\n", extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
+            //printf("Extremes\n");
+            //printf("x = %f, y = %f, z = %f\n", extremes.at(0).at<float>(0), extremes.at(0).at<float>(1), extremes.at(0).at<float>(2));
+            //printf("x = %f, y = %f, z = %f\n", extremes.at(1).at<float>(0), extremes.at(1).at<float>(1), extremes.at(1).at<float>(2));
+            //printf("x = %f, y = %f, z = %f\n", extremes.at(2).at<float>(0), extremes.at(2).at<float>(1), extremes.at(2).at<float>(2));
+            //printf("x = %f, y = %f, z = %f\n", extremes.at(3).at<float>(0), extremes.at(3).at<float>(1), extremes.at(3).at<float>(2));
 
-            printf("\n");
+            //printf("\n");
+
+            sem_wait(sem_slam_plane_prod);
+
+            std::stringstream planesString;
+
+            planesString << extremes.at(0).at<float>(0) << " " << extremes.at(0).at<float>(1) << " " << extremes.at(0).at<float>(2) << " ";
+            planesString << extremes.at(1).at<float>(0) << " " << extremes.at(1).at<float>(1) << " " << extremes.at(1).at<float>(2) << " ";
+            planesString << extremes.at(2).at<float>(0) << " " << extremes.at(2).at<float>(1) << " " << extremes.at(2).at<float>(2) << " ";
+            planesString << extremes.at(3).at<float>(0) << " " << extremes.at(3).at<float>(1) << " " << extremes.at(3).at<float>(2);
+
+            strncpy(result_plane, planesString.str().c_str(), MESSAGE_BLOCK_SIZE);
+
+            sem_post(sem_slam_plane_cons);
         }
 
         glEnd();

@@ -36,6 +36,10 @@
 #define FILENAME_CORRECTION_SLAM "/tmp/blockslamcorrection"
 #define SLAM_SEM_CORRECTION_FNAME "/correction"
 
+#define FILENAME_SLAM_PLANE "/tmp/blockslamplane"
+#define SLAM_SEM_PLANE_CONS_FNAME "/slamplanecons"
+#define SLAM_SEM_PLANE_PROD_FNAME "/slamplaneprod"
+
 namespace ORB_SLAM2
 {
 
@@ -115,6 +119,18 @@ void Viewer::Run()
         exit(EXIT_FAILURE);
     }
 
+    sem_t *sem_slam_plane_cons = sem_open(SLAM_SEM_PLANE_CONS_FNAME, 0);
+    if (sem_slam_plane_cons == SEM_FAILED) {
+        perror("sem_open/planecons");
+        exit(EXIT_FAILURE);
+    }
+
+    sem_t *sem_slam_plane_prod = sem_open(SLAM_SEM_PLANE_PROD_FNAME, 1);
+    if (sem_slam_plane_prod == SEM_FAILED) {
+        perror("sem_open/planeprod");
+        exit(EXIT_FAILURE);
+    }
+
     key_t keyCorr;
     // request a key
     // the key is linked to a filename, so that other programs can access it
@@ -138,6 +154,31 @@ void Viewer::Run()
     result_correction = (char*) shmat(shared_correction_block_id, NULL, 0);
     if (result_correction == (char *)IPC_RESULT_ERROR) {
         result_correction = NULL;
+    }
+
+    key_t keyPlane;
+    // request a key
+    // the key is linked to a filename, so that other programs can access it
+    if (-1 != open(FILENAME_SLAM_PLANE, O_CREAT, 0777)) {
+        keyPlane = keyPlane = ftok(FILENAME_SLAM_PLANE, 0);
+    } else {
+        perror("open");
+        exit(1);
+    }
+
+    // get shared block --- create it if it doesn't exist
+    int shared_plane_block_id = shmget(keyPlane, MESSAGE_BLOCK_SIZE, IPC_CREAT | SHM_R | SHM_W );
+
+    char *result_plane;
+
+    if (shared_plane_block_id == IPC_RESULT_ERROR) {
+        result_plane = NULL;
+    }
+
+    //map the shared block int this process's memory and give me a pointer to it
+    result_plane = (char*) shmat(shared_plane_block_id, NULL, 0);
+    if (result_plane == (char *)IPC_RESULT_ERROR) {
+        result_plane = NULL;
     }
 
     while(1)
@@ -181,7 +222,7 @@ void Viewer::Run()
         if(menuShowKeyFrames || menuShowGraph)
             mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph);
         if(menuShowPoints)
-            mpMapDrawer->DrawMapPoints(menuShowCurrentPoints, sem_correction, result_correction);
+            mpMapDrawer->DrawMapPoints(menuShowCurrentPoints, sem_correction, result_correction, sem_slam_plane_prod, sem_slam_plane_cons, result_plane);
 
         pangolin::FinishFrame();
 
