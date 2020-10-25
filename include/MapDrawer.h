@@ -27,6 +27,13 @@
 #include<pangolin/pangolin.h>
 
 #include<mutex>
+#include <algorithm>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdlib.h>
+#include <string.h>
 
 namespace ORB_SLAM2
 {
@@ -38,7 +45,7 @@ public:
 
     Map* mpMap;
 
-    void DrawMapPoints(const bool bDrawCurrentPoints);
+    void DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correction, char *result_correction);
     void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph);
     void DrawCurrentCamera(pangolin::OpenGlMatrix &Twc);
     void SetCurrentCameraPose(const cv::Mat &Tcw);

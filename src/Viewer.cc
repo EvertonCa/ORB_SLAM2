@@ -21,8 +21,20 @@
 #include "Viewer.h"
 #include <pangolin/pangolin.h>
 #include <unistd.h>
+#include <algorithm>
+#include <semaphore.h>
+#include <fcntl.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <mutex>
+
+#define IPC_RESULT_ERROR (-1)
+#define MESSAGE_BLOCK_SIZE 4096
+#define FILENAME_CORRECTION_SLAM "/tmp/blockslamcorrection"
+#define SLAM_SEM_CORRECTION_FNAME "/correction"
 
 namespace ORB_SLAM2
 {
@@ -94,6 +106,40 @@ void Viewer::Run()
     bool bFollow = true;
     bool bLocalizationMode = false;
 
+    sem_unlink(SLAM_SEM_CORRECTION_FNAME);
+
+    // setup some semaphores
+    sem_t *sem_correction = sem_open(SLAM_SEM_CORRECTION_FNAME, O_CREAT, 0660, 1);
+    if (sem_correction == SEM_FAILED) {
+        perror("sem_open/correction");
+        exit(EXIT_FAILURE);
+    }
+
+    key_t keyCorr;
+    // request a key
+    // the key is linked to a filename, so that other programs can access it
+    if (-1 != open(FILENAME_CORRECTION_SLAM, O_CREAT, 0777)) {
+        keyCorr = keyCorr = ftok(FILENAME_CORRECTION_SLAM, 0);
+    } else {
+        perror("open");
+        exit(1);
+    }
+
+    // get shared block --- create it if it doesn't exist
+    int shared_correction_block_id = shmget(keyCorr, MESSAGE_BLOCK_SIZE, IPC_CREAT | SHM_R | SHM_W );
+
+    char *result_correction;
+
+    if (shared_correction_block_id == IPC_RESULT_ERROR) {
+        result_correction = NULL;
+    }
+
+    //map the shared block int this process's memory and give me a pointer to it
+    result_correction = (char*) shmat(shared_correction_block_id, NULL, 0);
+    if (result_correction == (char *)IPC_RESULT_ERROR) {
+        result_correction = NULL;
+    }
+
     while(1)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -135,7 +181,7 @@ void Viewer::Run()
         if(menuShowKeyFrames || menuShowGraph)
             mpMapDrawer->DrawKeyFrames(menuShowKeyFrames,menuShowGraph);
         if(menuShowPoints)
-            mpMapDrawer->DrawMapPoints(menuShowCurrentPoints);
+            mpMapDrawer->DrawMapPoints(menuShowCurrentPoints, sem_correction, result_correction);
 
         pangolin::FinishFrame();
 

@@ -41,7 +41,7 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
 
 }
 
-void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
+void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correction, char *result_correction)
 {
     const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints();
     const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints();
@@ -101,6 +101,20 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
 
         std::vector<std::vector<cv::Mat>> coplanarMapPoints;
 
+        float coplanarThreshold = 0.02;
+
+        if (sem_correction != NULL || result_correction != NULL) {
+
+            sem_wait(sem_correction);
+
+            if (strlen(result_correction) > 0) {
+                coplanarThreshold = atof(result_correction);
+                printf("\"%f\"\n", coplanarThreshold);
+            } 
+
+            sem_post(sem_correction);
+        }
+
         for (std::vector<MapPoint *>::const_iterator i = vpCurrentMPs.begin(); i != vpCurrentMPs.end(); i++)
         {
             if ((*i)->isBad())
@@ -109,8 +123,6 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints)
             cv::Mat posi = (*i)->GetWorldPos();
             std::vector<cv::Mat> temp;
             temp.push_back(posi);
-
-            float coplanarThreshold = 0.02;
 
             for (std::vector<MapPoint *>::const_iterator j = vpCurrentMPs.begin(); j != vpCurrentMPs.end(); j++)
             {
