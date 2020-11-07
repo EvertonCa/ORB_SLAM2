@@ -132,7 +132,7 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correcti
                 if ((*j)->isBad())
                     continue;
                 cv::Mat posj = (*j)->GetWorldPos();
-                if (posi.at<float>(2) <= (posj.at<float>(2) + coplanarThreshold) && posi.at<float>(2) >= (posj.at<float>(2) - coplanarThreshold))
+                if (posi.at<float>(1) <= (posj.at<float>(1) + coplanarThreshold) && posi.at<float>(1) >= (posj.at<float>(1) - coplanarThreshold))
                 {
                     cv::Mat diff = posi != posj;
                     if (!(cv::countNonZero(diff) == 0))
@@ -170,10 +170,10 @@ void MapDrawer::DrawMapPoints(const bool bDrawCurrentPoints, sem_t *sem_correcti
                 if (coplanarMapPoints.at(0).at(col).at<float>(0) > extremes.at(1).at<float>(0))
                     extremes.at(1) = coplanarMapPoints.at(0).at(col);
 
-                if (coplanarMapPoints.at(0).at(col).at<float>(1) < extremes.at(2).at<float>(1))
+                if (coplanarMapPoints.at(0).at(col).at<float>(2) < extremes.at(2).at<float>(2))
                     extremes.at(2) = coplanarMapPoints.at(0).at(col);
 
-                if (coplanarMapPoints.at(0).at(col).at<float>(1) > extremes.at(3).at<float>(1))
+                if (coplanarMapPoints.at(0).at(col).at<float>(2) > extremes.at(3).at<float>(2))
                     extremes.at(3) = coplanarMapPoints.at(0).at(col);
                 //printf("x = %f, y = %f, z = %f ", coplanarMapPoints.at(row).at(col).at<float>(0), coplanarMapPoints.at(row).at(col).at<float>(1), coplanarMapPoints.at(row).at(col).at<float>(2));
             } 
